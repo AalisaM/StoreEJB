@@ -12,6 +12,11 @@
         <param-value>bootstrap</param-value>
     </context-param>
 
+    <context-param>
+        <param-name>org.omnifaces.SOCKET_ENDPOINT_ENABLED</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
     <welcome-file-list>
         <welcome-file>index.xhtml</welcome-file>
     </welcome-file-list>

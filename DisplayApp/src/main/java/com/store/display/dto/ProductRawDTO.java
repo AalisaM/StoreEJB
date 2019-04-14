@@ -1,4 +1,4 @@
-package com.store.display;
+package com.store.display.dto;
 
 public class ProductRawDTO {
     private int id;
