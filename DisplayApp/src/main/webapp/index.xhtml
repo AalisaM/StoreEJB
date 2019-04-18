@@ -5,22 +5,55 @@
       xmlns:f="http://xmlns.jcp.org/jsf/core"
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:o="http://omnifaces.org/ui"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://java.sun.com/jsp/jstl/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
       xsi:schemaLocation="http://omnifaces.org/ui ">
 <h:head>
+    <link rel="stylesheet" href="http://localhost:8086/assets/css/bootstrap.min.css"/>
     <title>Display</title>
+    <link rel="stylesheet" href="http://localhost:8086/assets/css/local.css"/>
 </h:head>
 <h:body>
-    <h:dataTable value="#{displayController.products}" var="student">
-        <h:column>
-            <f:facet name="header">Name</f:facet>
-            #{student.name}
-        </h:column>
-        <h:column>
-            <f:facet name="header">Price</f:facet>
-            #{student.price}
-        </h:column>
-    </h:dataTable>
+
+    <div class="row header navbar-fixed-top fixed-top">
+        <div class="col" style="max-height: 1.5vh">
+            <div class="row header-menu site-padding ">
+                <div>
+                    <h:outputLink value="http://localhost:8086/">
+                        <h:graphicImage width="50px"  url="http://localhost:8086/assets/images/logo2.png" alt="logo" style="width:50px; float:left"/>
+                        <p style="font-size: 2rem; width: 20vw; margin-top: 1.5vw">T-Store Display</p>
+                    </h:outputLink>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid" style="background-color: #FDFCFC">
+        <div class="site-content">
+            <div class="row site-padding catalogue">
+                <div class="col content" style="margin-top: 15vh; margin-left: 2vw; width: 60vw; background-color: #ffffff">
+                    <div class="row justify-content-start product-list">
+                        <ui:repeat value="#{displayController.products}" var="student">
+                            <div class="col">
+                                <div class="card" style="margin-bottom: 80px">
+                                    <h:outputLink value="http://localhost:8086/product/#{student.id}">
+                                        <div class="card-body">
+                                            <h5 class="card-title productname">#{student.name}</h5>
+                                            <div style="text-align: center">
+                                                <o:graphicImage width="80px" height="80px" value="#{displayController.getImage(student.imageFile)}" rendered="#{not empty student.imageFile}"  styleClass="prod"/>
+                                                <h:graphicImage width="80px"  height="80px" url="http://localhost:8086/assets/images/product.png" rendered="#{empty student.imageFile}" styleClass="prod"/>
+                                            </div>
+                                            <p class="card-text productprice">${student.price}</p>
+                                        </div>
+                                    </h:outputLink>
+                                </div>
+                            </div>
+                        </ui:repeat>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </h:body>
 <script type="text/javascript">
     function socketListener(message, channel, event) {

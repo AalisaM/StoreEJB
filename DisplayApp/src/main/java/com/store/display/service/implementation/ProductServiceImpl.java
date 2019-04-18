@@ -1,6 +1,7 @@
 package com.store.display.service.implementation;
 
 import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
 import com.store.display.controller.DisplayController;
 import com.store.display.dto.ProductRawDTO;
 import com.store.display.service.ProductService;
@@ -14,22 +15,21 @@ import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.LinkedList;
 
 @Stateless
 public class ProductServiceImpl implements ProductService {
+    private static final Logger log = Logger.getLogger(ProductService.class);
 
     @Inject
     private PushServiceImpl pushServiceImpl;
 
-    private static final Logger LOG = Logger.getLogger(ProductServiceImpl.class);
-    private LinkedList products;
+    private LinkedList<ProductRawDTO> products = new LinkedList();
 
     private QueueConnection connection;
     private QueueSession session;
@@ -47,7 +47,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public LinkedList updateProducts(){
-        LOG.info("in contracts");
         String URL = "http://localhost:8086/admin/statistics/restProduct";
         try {
             java.net.URL url = new URL(URL);
@@ -59,9 +58,22 @@ public class ProductServiceImpl implements ProductService {
             }
             BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
             String result = br.readLine().replace("null","\"\"");
-            LinkedList<ProductRawDTO> users = new Gson().fromJson(result,LinkedList.class);
+            LinkedList<LinkedTreeMap> users = new Gson().fromJson(result, LinkedList.class);
+
+            for (LinkedTreeMap product: users){
+                ProductRawDTO p = new ProductRawDTO();
+                log.info(product.get("imageFile"));
+                p.setId((int) Math.floor((Double) product.get("id")));
+                p.setImageFile((String) product.get("imageFile"));
+                p.setDescription((String) product.get("desciption"));
+                p.setPrice((Double) product.get("price"));
+                p.setName((String) product.get("name"));
+                this.products.add(p);
+            }
             conn.disconnect();
-            this.products = users;
+            //this.products = users;
+            log.info("IN UPDATE");
+            log.info(Arrays.toString(users.toArray()));
         } catch (IOException e) {
             this.products = new LinkedList<ProductRawDTO>();
             //  e.printStackTrace();
@@ -73,11 +85,12 @@ public class ProductServiceImpl implements ProductService {
     @PostConstruct
     public void receive() {
         updateProducts();
+        log.info("in receive");
         Hashtable<String, String> props = new Hashtable<String, String>();
         props.put("java.naming.factory.initial", "org.apache.activemq.jndi.ActiveMQInitialContextFactory");
         props.put("java.naming.provider.url", "tcp://localhost:61616");
         props.put("queue.js-queue", "my_jms_queue");
-        props.put("connectionFactoryNam0es", "queueCF");
+        props.put("connectionFactoryNames", "queueCF");
         try {
             Context context = new InitialContext(props);
             QueueConnectionFactory connectionFactory = (QueueConnectionFactory) context.lookup("queueCF");
@@ -88,11 +101,12 @@ public class ProductServiceImpl implements ProductService {
             receiver = session.createReceiver(queue);
             receiver.setMessageListener(new DisplayController(this));
             System.out.println("receive");
+            log.info("in trye receive");
 
         } catch (NamingException e) {
-            System.out.println(e.toString());
+            log.info(e.toString());
         } catch (JMSException e) {
-            System.out.println(e.toString());
+            log.info(e.toString());
         }
     }
 
@@ -103,8 +117,9 @@ public class ProductServiceImpl implements ProductService {
             session.close();
             connection.close();
         } catch (JMSException e) {
-            System.out.println(e.toString());
+            log.info(e.toString());
         }
     }
+
 
 }

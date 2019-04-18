@@ -1,10 +1,23 @@
 package com.store.display.dto;
 
+import com.store.display.service.ProductService;
+import org.apache.log4j.Logger;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Base64;
+
 public class ProductRawDTO {
+    private static final Logger log = Logger.getLogger(ProductRawDTO.class);
+
     private int id;
     private String name;
     private String description;
-    private int price;
+    private Double price;
     private int weight;
     private int volume;
     private int amount;
@@ -13,7 +26,7 @@ public class ProductRawDTO {
     private String imageSource;
     private String uploadFile;
     private String category;
-
+    private String imageFile;
 
     public int getId() {
         return id;
@@ -39,11 +52,11 @@ public class ProductRawDTO {
         this.description = description;
     }
 
-    public int getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(int price) {
+    public void setPrice(Double price) {
         this.price = price;
     }
 
@@ -102,12 +115,35 @@ public class ProductRawDTO {
     public void setImageSource(String imageSource) {
         this.imageSource = imageSource;
     }
-
     public String getCategory() {
         return category;
     }
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+
+    public String getImageFile() {
+        return imageFile;
+    }
+
+    public void setImageFile(String imageFile) {
+        log.info("======in set file===========");
+        log.info(imageFile);
+        try {
+            File imagesDir = new File(System.getProperty("jboss.server.data.dir"), "images");
+            log.info(System.getProperty("jboss.server.data.dir"));
+            imagesDir.mkdir();
+            ByteArrayInputStream bis = new ByteArrayInputStream(Base64.getDecoder().decode(imageFile));
+            BufferedImage bImage2 = ImageIO.read(bis);
+            ImageIO.write(bImage2, "png", new File(imagesDir,this.id + ".png"));
+            this.imageFile = imagesDir.getAbsolutePath()+"\\" + this.id + ".png";
+        }catch (Exception e){
+            this.imageFile = "";
+            log.info(e.getMessage());
+        }
+        log.info("=================");
+
     }
 }
